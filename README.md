@@ -1,0 +1,2 @@
+# squiddy
+Github Actions bot
