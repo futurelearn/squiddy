@@ -6,4 +6,4 @@ LABEL "com.github.actions.icon"="mic"
 LABEL "com.github.actions.color"="purple"
 
 COPY hello_world.rb /opt/hello_world.rb
-ENTRYPOINT ["ruby", "/opt/hello_world.rb", "Squiddy"]
+ENTRYPOINT ["ruby", "/opt/hello_world.rb"]
