@@ -1,0 +1,8 @@
+name: Squiddy's first workflow!
+description: Write some text
+outputs:
+  time:
+    description: 'The time we greeted you'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
