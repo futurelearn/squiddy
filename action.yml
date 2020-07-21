@@ -5,6 +5,8 @@ inputs:
     description: 'Who to greet'
     required: true
     default: 'World'
+  github_event:
+    required: true
 outputs:
   time:
     description: 'The time we greeted you'
@@ -13,3 +15,4 @@ runs:
   image: 'Dockerfile'
   args:
     - ${{ inputs.who-to-greet }}
+    - ${{ inputs.github_event }}
