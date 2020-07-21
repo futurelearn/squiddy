@@ -1,0 +1,5 @@
+name: Bubble Merge
+description: Does a no fast forward merge to master after rebase
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
