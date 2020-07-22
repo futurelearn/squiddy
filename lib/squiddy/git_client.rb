@@ -12,5 +12,21 @@ module Squiddy
 
       @client = Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
     end
+
+    def branch
+      event.dig("pull_request", "head", "ref")
+    end
+
+    def raw_event
+      File.read(ENV["GITHUB_EVENT_PATH"])
+    end
+
+    def event
+      unless ENV.key?("GITHUB_EVENT_PATH")
+        raise "No GITHUB_EVENT_PATH env var found. This script is designed to run via github actions, which will provide the github event via this env var."
+      end
+
+      JSON.parse File.read(ENV["GITHUB_EVENT_PATH"])
+    end
   end
 end
