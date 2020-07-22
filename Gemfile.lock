@@ -36,6 +36,8 @@ GEM
       dotenv (= 2.7.6)
       railties (>= 3.2)
     erubi (1.9.0)
+    faraday (1.0.1)
+      multipart-post (>= 1.2, < 3)
     http-accept (1.7.0)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
@@ -53,10 +55,14 @@ GEM
     mime-types-data (3.2020.0512)
     mini_portile2 (2.4.0)
     minitest (5.14.1)
+    multipart-post (2.1.1)
     netrc (0.11.0)
     nokogiri (1.10.10)
       mini_portile2 (~> 2.4.0)
     oauth (0.5.4)
+    octokit (4.18.0)
+      faraday (>= 0.9)
+      sawyer (~> 0.8.0, >= 0.5.3)
     pry (0.13.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -100,6 +106,9 @@ GEM
       json (>= 2.3.0)
       oauth (>= 0.4.5)
       rest-client (>= 1.8.0)
+    sawyer (0.8.2)
+      addressable (>= 2.3.5)
+      faraday (> 0.8, < 2.0)
     thor (1.0.1)
     thread_safe (0.3.6)
     tzinfo (1.2.7)
@@ -115,6 +124,7 @@ PLATFORMS
 DEPENDENCIES
   dotenv-rails
   launchy
+  octokit
   pry
   rspec
   ruby-trello
