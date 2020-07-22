@@ -56,4 +56,23 @@ RSpec.describe Squiddy::TrelloChecklist do
       end
     end
   end
+
+  describe '#card_id_from_url' do
+    let(:good_url) { "https://trello.com/c/1234abcd/good-card" }
+    let(:bad_url) { "https://trello.com/b/1234abcd/bad-board" }
+    let(:non_existent_url) { "https://trello.com/c/12345678/bad-card" }
+    let(:non_url) { "some-string" }
+
+    it 'returns the card ID from a given Trello card URL' do
+      expect(subject.card_id_from_url(good_url)).to eq('1234abcd')
+    end
+
+    it 'returns an error when given a non-card URL' do
+      expect { subject.card_id_from_url(bad_url) }.to raise_error(Squiddy::TrelloChecklist::CardNotFound)
+    end
+
+    it 'returns an error when not a URL' do
+      expect { subject.card_id_from_url(non_url) }.to raise_error(StandardError)
+    end
+  end
 end
