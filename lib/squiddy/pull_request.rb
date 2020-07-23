@@ -18,6 +18,14 @@ module Squiddy
       end
     end
 
+    def body_regex(regex)
+      match = regex.match(object[:body])
+
+      return nil if match.nil?
+
+      match[0]
+    end
+
     def url
       object[:html_url]
     end

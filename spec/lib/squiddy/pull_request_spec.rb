@@ -27,6 +27,16 @@ RSpec.describe Squiddy::PullRequest do
     end
   end
 
+  describe '#body_regex' do
+    it 'returns the matched string if there is a match' do
+      expect(subject.body_regex(/matched-string/)).to eq("matched-string")
+    end
+
+    it 'returns nil if there is no match' do
+      expect(subject.body_regex(/foo/)).to eq(nil)
+    end
+  end
+
   describe '#url' do
     it 'returns the pull request URL' do
       expect(subject.url).to eq("https://github.com/test/repository/pull/1")
