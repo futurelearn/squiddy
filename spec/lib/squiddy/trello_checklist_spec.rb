@@ -31,6 +31,12 @@ RSpec.describe Squiddy::TrelloChecklist do
       end
     end
 
+    describe '#item_exist?' do
+      it 'raises an error' do
+        expect { subject.item_exist?('test') }.to raise_error(Squiddy::TrelloChecklist::ChecklistNotFound)
+      end
+    end
+
     describe '#add_item' do
       it 'raises an error' do
         expect { subject.add_item('test') }.to raise_error(Squiddy::TrelloChecklist::ChecklistNotFound)
@@ -75,6 +81,12 @@ RSpec.describe Squiddy::TrelloChecklist do
       end
     end
 
+    describe '#item_exist?' do
+      it 'returns true when the item exists' do
+        expect(subject.item_exist?('test')).to eq(true)
+      end
+    end
+
     describe '#add_item' do
       it 'returns true when the item is added' do
         expect(subject.add_item('test')).to eq(true)
@@ -84,6 +96,18 @@ RSpec.describe Squiddy::TrelloChecklist do
     describe '#mark_item_as_complete' do
       it 'returns true when the item is marked as complete' do
         expect(subject.mark_item_as_complete('test')).to eq(true)
+      end
+    end
+
+    context 'the item does not exist' do
+      before do
+        allow(trello_checklist).to receive(:items).and_return([])
+      end
+
+      describe '#item_exist?' do
+        it 'returns false' do
+          expect(subject.item_exist?('test')).to eq(false)
+        end
       end
     end
   end

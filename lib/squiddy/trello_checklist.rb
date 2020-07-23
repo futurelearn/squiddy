@@ -26,6 +26,12 @@ module Squiddy
       !checklist.nil?
     end
 
+    def item_exist?(item)
+      fail ChecklistNotFound unless checklist_exist?
+
+      !item_id(item).nil?
+    end
+
     def add_item(item)
       fail ChecklistNotFound unless checklist_exist?
 
@@ -69,7 +75,11 @@ module Squiddy
     end
 
     def item_id(name)
-      card.checklists.first.items.find { |item| item.name == name }.id
+      i = card.checklists.first.items.find { |item| item.name == name }
+
+      return nil if i.nil?
+
+      i.id
     end
   end
 end
