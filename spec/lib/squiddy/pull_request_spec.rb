@@ -12,7 +12,8 @@ RSpec.describe Squiddy::PullRequest do
 
     allow(client).to receive(:pull_request).and_return({
       body: "I contain a matched-string",
-      html_url: "https://github.com/test/repository/pull/1"
+      html_url: "https://github.com/test/repository/pull/1",
+      state: "closed"
     })
   end
 
@@ -29,6 +30,18 @@ RSpec.describe Squiddy::PullRequest do
   describe '#url' do
     it 'returns the pull request URL' do
       expect(subject.url).to eq("https://github.com/test/repository/pull/1")
+    end
+  end
+
+  describe '#open?' do
+    it 'returns false when the pull request is closed' do
+      expect(subject.open?).to eq(false)
+    end
+  end
+
+  describe '#closed?' do
+    it 'returns true when the pull request is closed' do
+      expect(subject.closed?).to eq(true)
     end
   end
 end

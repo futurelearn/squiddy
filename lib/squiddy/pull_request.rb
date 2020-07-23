@@ -21,5 +21,13 @@ module Squiddy
     def url
       object[:html_url]
     end
+
+    def open?
+      object[:state] == "open"
+    end
+
+    def closed?
+      object[:state] == "closed"
+    end
   end
 end
