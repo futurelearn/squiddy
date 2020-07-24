@@ -20,3 +20,10 @@ jobs:
         cache_froms: futurelearn/squiddy:latest
         repository: futurelearn/squiddy
         tags: ${{ steps.branch_name.outputs.branch }}
+    - name: Build gem
+      if: steps.branch_name.outputs.branch == 'master'
+      run: |
+        echo ":github: Bearer ${{ secrets.GITHUB_TOKEN }}" >> ~/.gem/credentials
+        chmod 0600 ~/.gem/credentials
+        gem build squiddy.gemspec
+        gem push --key github --host https://rubygems.pkg.github.com/futurelearn squiddy-$(cat VERSION).gem || true

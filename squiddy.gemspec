@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'squiddy'
-  s.version     = '0.1.0'
+  s.version     = File.read('VERSION').chomp
   s.licenses    = ['MIT']
   s.summary     = "A FutureLearn bot for GitHub Actions"
   s.files       = Dir['lib/*.rb', 'lib/squiddy/*.rb', 'bin/*']
