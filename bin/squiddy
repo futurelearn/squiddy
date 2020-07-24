@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/squiddy'
+
+def check_environment_variable(name)
+  name = "SQUIDDY_#{name.upcase}"
+
+  if ENV[name].nil?
+    abort("ERROR: Must provide #{name} environment variable")
+  end
+end
+
+case Squiddy::Event.new.type
+when "pull_request"
+  %w(trello_developer_public_key trello_member_token github_access_token).each do |env|
+    check_environment_variable(env)
+  end
+
+  Squiddy::TrelloPullRequest.run
+else
+  puts "Nothing to do!"
+end
