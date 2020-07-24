@@ -67,7 +67,11 @@ module Squiddy
     private
 
     def card
-      client.find(:card, card_id_from_url)
+      begin
+        client.find(:card, card_id_from_url)
+      rescue
+        fail CardNotFound
+      end
     end
 
     def checklist

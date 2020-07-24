@@ -21,18 +21,22 @@ module Squiddy
       trello_card = pull_request.body_regex(trello_regex)
       return nil unless trello_card
 
-      trello = Squiddy::TrelloChecklist.new(trello_card)
+      begin
+        trello = Squiddy::TrelloChecklist.new(trello_card)
 
-      item = pull_request.url
+        item = pull_request.url
 
-      if pull_request.open?
-        trello.create_checklist unless trello.checklist_exist?
+        if pull_request.open?
+          trello.create_checklist unless trello.checklist_exist?
 
-        trello.add_item(item) unless trello.item_exist?(item)
-      end
+          trello.add_item(item) unless trello.item_exist?(item)
+        end
 
-      if pull_request.closed?
-        trello.mark_item_as_complete(item) if trello.item_exist?(item)
+        if pull_request.closed?
+          trello.mark_item_as_complete(item) if trello.item_exist?(item)
+        end
+      rescue Squiddy::TrelloChecklist::ChecklistNotFound => e
+        e.message
       end
     end
   end

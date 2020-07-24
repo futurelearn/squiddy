@@ -89,6 +89,29 @@ RSpec.describe Squiddy::TrelloPullRequest do
           expect(trello_checklist).to_not have_received(:add_item)
         end
       end
+
+      context 'when the checklist does not exist' do
+        before do
+          allow(trello_checklist).to receive(:add_item).and_raise(Squiddy::TrelloChecklist::ChecklistNotFound)
+          allow(trello_checklist).to receive(:checklist_exist?).and_return(false)
+          allow(trello_checklist).to receive(:item_exist?).and_raise(Squiddy::TrelloChecklist::ChecklistNotFound)
+          allow(trello_checklist).to receive(:mark_item_as_complete).and_raise(Squiddy::TrelloChecklist::ChecklistNotFound)
+        end
+
+        it 'rescues an error' do
+          expect(subject.run).to eq("Squiddy::TrelloChecklist::ChecklistNotFound")
+        end
+      end
+
+      context 'when the card does not exist' do
+        before do
+          allow(Squiddy::TrelloChecklist).to receive(:new).with(trello_card).and_raise(Squiddy::TrelloChecklist::CardNotFound)
+        end
+
+        it 'raises an error' do
+          expect { subject.run }.to raise_error(Squiddy::TrelloChecklist::CardNotFound)
+        end
+      end
     end
 
     context 'with no link to a Trello card' do
@@ -133,6 +156,28 @@ RSpec.describe Squiddy::TrelloPullRequest do
         it 'does nothing' do
           subject.run
           expect(trello_checklist).to_not have_received(:mark_item_as_complete)
+        end
+      end
+
+      context 'when the checklist does not exist' do
+        before do
+          allow(trello_checklist).to receive(:add_item).and_raise(Squiddy::TrelloChecklist::ChecklistNotFound)
+          allow(trello_checklist).to receive(:item_exist?).and_raise(Squiddy::TrelloChecklist::ChecklistNotFound)
+          allow(trello_checklist).to receive(:mark_item_as_complete).and_raise(Squiddy::TrelloChecklist::ChecklistNotFound)
+        end
+
+        it 'rescues an error' do
+          expect(subject.run).to eq("Squiddy::TrelloChecklist::ChecklistNotFound")
+        end
+      end
+
+      context 'when the card does not exist' do
+        before do
+          allow(Squiddy::TrelloChecklist).to receive(:new).and_raise(Squiddy::TrelloChecklist::CardNotFound)
+        end
+
+        it 'raises an error' do
+          expect { subject.run }.to raise_error(Squiddy::TrelloChecklist::CardNotFound)
         end
       end
     end
