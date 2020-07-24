@@ -7,6 +7,7 @@ LABEL "com.github.actions.color"="purple"
 
 RUN gem install octokit
 
+COPY git_client.rb /opt/git_client.rb
 COPY bubble_merge.rb /opt/bubble_merge.rb
 
 ENTRYPOINT ["ruby", "/opt/bubble_merge.rb"]
