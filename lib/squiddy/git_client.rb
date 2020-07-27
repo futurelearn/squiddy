@@ -35,7 +35,7 @@ module Squiddy
     end
 
     def merge_branch_into_master
-      client.merge_pull_request(repo, pr_number, '', { merge_method: 'rebase' })
+      client.merge_pull_request(repo, pr_number, '', { merge_method: 'rebase', commit_title: commit_title, commit_message: commit_message })
     end
 
     def master_sha
@@ -75,6 +75,30 @@ module Squiddy
     end
 
     private
+
+    def commit_title
+      "PR #{pr_number} merged"
+    end
+
+    def commit_message
+      <<~MESSAGE
+        Squiddy has merged the branch
+        `#{branch}`
+        as requested by
+        `#{comment_author}`
+        with a comment in the PR[1].
+
+        Further details are listed below[2].
+
+        Squiddy out.
+
+        [1]
+        #{pr_number}
+
+        [2]
+        #{comment}
+      MESSAGE
+    end
 
     def git_event
       unless ENV.key?("GITHUB_EVENT")
