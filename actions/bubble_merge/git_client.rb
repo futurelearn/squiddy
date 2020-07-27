@@ -20,8 +20,7 @@ module Squiddy
       unless client.pull_merged?(repo, pr_number)
         comment_start
         begin
-          rebase_branch_off_master
-          merge_branch_into_master
+          merge_bubble_branch_into_master
           delete_branch
           comment_finish
         rescue Octokit::Conflict => e
@@ -30,12 +29,8 @@ module Squiddy
       end
     end
 
-    def rebase_branch_off_master
-      client.merge(repo, branch, base_branch, { merge_method: 'rebase' })
-    end
-
-    def merge_branch_into_master
-      client.merge_pull_request(repo, pr_number, '', { merge_method: 'rebase' })
+    def merge_bubble_branch_into_master
+      client.merge(repo, base_branch, branch, { merge_method: 'rebase', commit_message: commit_message, sha: master_sha })
     end
 
     def master_sha
@@ -70,11 +65,36 @@ module Squiddy
       event.dig('comment', 'user', 'login')
     end
 
+    def comment_author_link
+      event.dig('comment', 'user', 'html_url')
+    end
+
     def comment
-      event.dig('comment', 'user', 'body')
+      event.dig('comment', 'body')
     end
 
     private
+
+    def commit_title
+      "PR no. #{pr_number} merged"
+    end
+
+    def commit_message
+      <<~MESSAGE
+        #{commit_title}
+
+        Squiddy-bot has merged the branch #{branch}
+        as requested by #{comment_author} in the PR number #{pr_number}.
+
+        Further details are listed below.
+
+        Squiddy out.
+
+        Optional additional details:
+
+        #{comment}
+      MESSAGE
+    end
 
     def git_event
       unless ENV.key?("GITHUB_EVENT")
