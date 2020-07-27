@@ -41,5 +41,9 @@ module Squiddy
     def labels
       object[:labels].map { |label| label[:name] }
     end
+
+    def body
+      object[:body]
+    end
   end
 end

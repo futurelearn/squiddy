@@ -61,4 +61,10 @@ RSpec.describe Squiddy::PullRequest do
       expect(subject.labels).to eq(['test-label'])
     end
   end
+
+  describe '#body' do
+    it 'returns the body of the pull request' do
+      expect(subject.body).to eq("I contain a matched-string")
+    end
+  end
 end
