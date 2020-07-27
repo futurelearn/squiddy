@@ -10,12 +10,23 @@ def check_environment_variable(name)
   end
 end
 
+def get_environment_variable(name)
+  name = "SQUIDDY_#{name.upcase}"
+
+  ENV[name]
+end
+
 event = Squiddy::Event.new
 puts "GITHUB_REF: #{event.ref}"
 
 case event.type
 when "pull_request"
-  %w(trello_developer_public_key trello_member_token github_access_token issue_number).each do |env|
+  %w(
+    github_access_token
+    issue_number
+    trello_developer_public_key
+    trello_member_token
+  ).each do |env|
     check_environment_variable(env)
   end
 
@@ -23,6 +34,28 @@ when "pull_request"
 
   puts "Running TrelloPullRequest"
   Squiddy::TrelloPullRequest.run(pull_request_number: ENV['SQUIDDY_ISSUE_NUMBER'])
+  puts "Done!"
+
+  if ENV['SQUIDDY_DEPENDABOT_ENABLE']
+    %w(
+      dependabot_board_id
+      dependabot_github_label
+      dependabot_list_create_id
+      dependabot_list_done_id
+    ).each do |env|
+      check_environment_variable(env)
+    end
+
+    puts "Running TrelloDependabot"
+    Squiddy::TrelloDependabot.run(
+      board_id: get_environment_variable('dependabot_board_id'),
+      github_label: get_environment_variable('dependabot_github_label'),
+      list_create_id: get_environment_variable('dependabot_list_create_id'),
+      list_done_id: get_environment_variable('dependabot_list_done_id'),
+      pull_request_number: ENV['SQUIDDY_ISSUE_NUMBER']
+    )
+    puts "Done!"
+  end
 else
   puts "Nothing to do!"
 end

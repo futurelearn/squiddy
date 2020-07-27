@@ -1,3 +1,5 @@
+require 'trello'
+
 require_relative 'squiddy/event'
 require_relative 'squiddy/pull_request'
 require_relative 'squiddy/trello'
@@ -51,6 +53,40 @@ module Squiddy
         end
       rescue Squiddy::Trello::Checklist::ChecklistNotFound => e
         e.message
+      end
+    end
+  end
+
+  # TrelloDependabot will create a card on a specific board and list for every
+  # pull request which has a specific label that is configured in dependabot,
+  # with the body and link to the PR
+  class TrelloDependabot
+    def self.run(board_id:,list_create_id:,list_done_id:,github_label:,pull_request_number:)
+      fail "pull_request_number is nil" if pull_request_number.nil?
+
+      event = Squiddy::Event.new
+      return nil unless event.type == "pull_request"
+
+      pull_request = Squiddy::PullRequest.new(event.repository, pull_request_number)
+      return nil unless pull_request.labels.include?(github_label)
+
+      board = ::Trello::Board.find(board_id)
+      card = board.cards.find { |card| card.name == pull_request.title }
+
+      if pull_request.open?
+        return nil if card
+
+        dependabot_label = board.labels.find {|label| label.name == "Dependabot" } || ::Trello::Label.create(board_id: board_id, name: "Dependabot")
+
+        body = [pull_request.body, pull_request.url].join("\n\n")
+
+        ::Trello::Card.create(list_id: list_create_id, name: pull_request.title, desc: body, card_labels: [dependabot_label.id], pos: "bottom")
+      end
+
+      if pull_request.closed?
+        return nil unless card
+
+        card.move_to_list(list_done_id)
       end
     end
   end
