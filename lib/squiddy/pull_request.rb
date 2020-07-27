@@ -37,5 +37,9 @@ module Squiddy
     def closed?
       object[:state] == "closed"
     end
+
+    def labels
+      object[:labels].map { |label| label[:name] }
+    end
   end
 end

@@ -13,7 +13,8 @@ RSpec.describe Squiddy::PullRequest do
     allow(client).to receive(:pull_request).and_return({
       body: "I contain a matched-string",
       html_url: "https://github.com/test/repository/pull/1",
-      state: "closed"
+      state: "closed",
+      labels: [{name: 'test-label'}]
     })
   end
 
@@ -52,6 +53,12 @@ RSpec.describe Squiddy::PullRequest do
   describe '#closed?' do
     it 'returns true when the pull request is closed' do
       expect(subject.closed?).to eq(true)
+    end
+  end
+
+  describe '#labels' do
+    it 'returns the label names as an array' do
+      expect(subject.labels).to eq(['test-label'])
     end
   end
 end
