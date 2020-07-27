@@ -1,9 +1,9 @@
 require 'spec_helper'
 require 'rest-client'
 
-require_relative '../../../lib/squiddy/trello_checklist'
+require_relative '../../../../lib/squiddy/trello'
 
-RSpec.describe Squiddy::TrelloChecklist do
+RSpec.describe Squiddy::Trello::Checklist do
   subject { described_class.new("https://trello.com/c/1234546789") }
 
   context 'the checklist does not exist' do
@@ -34,19 +34,19 @@ RSpec.describe Squiddy::TrelloChecklist do
 
     describe '#item_exist?' do
       it 'raises an error' do
-        expect { subject.item_exist?('test') }.to raise_error(Squiddy::TrelloChecklist::ChecklistNotFound)
+        expect { subject.item_exist?('test') }.to raise_error(Squiddy::Trello::Checklist::ChecklistNotFound)
       end
     end
 
     describe '#add_item' do
       it 'raises an error' do
-        expect { subject.add_item('test') }.to raise_error(Squiddy::TrelloChecklist::ChecklistNotFound)
+        expect { subject.add_item('test') }.to raise_error(Squiddy::Trello::Checklist::ChecklistNotFound)
       end
     end
 
     describe '#mark_item_as_complete' do
       it 'raises an error' do
-        expect { subject.add_item('test') }.to raise_error(Squiddy::TrelloChecklist::ChecklistNotFound)
+        expect { subject.add_item('test') }.to raise_error(Squiddy::Trello::Checklist::ChecklistNotFound)
       end
     end
   end
@@ -120,15 +120,15 @@ RSpec.describe Squiddy::TrelloChecklist do
     let(:non_url) { "some-string" }
 
     it 'returns the card ID from a given Trello card URL' do
-      expect(Squiddy::TrelloChecklist.new(good_url).card_id_from_url).to eq('1234abcd')
+      expect(Squiddy::Trello::Checklist.new(good_url).card_id_from_url).to eq('1234abcd')
     end
 
     it 'returns an error when given a non-card URL' do
-      expect { Squiddy::TrelloChecklist.new(bad_url).card_id_from_url }.to raise_error(Squiddy::TrelloChecklist::CardNotFound)
+      expect { Squiddy::Trello::Checklist.new(bad_url).card_id_from_url }.to raise_error(Squiddy::Trello::Checklist::CardNotFound)
     end
 
     it 'returns an error when not a URL' do
-      expect { Squiddy::TrelloChecklist.new(non_url).card_id_from_url }.to raise_error(StandardError)
+      expect { Squiddy::Trello::Checklist.new(non_url).card_id_from_url }.to raise_error(StandardError)
     end
   end
 end

@@ -1,6 +1,6 @@
 require_relative 'squiddy/event'
 require_relative 'squiddy/pull_request'
-require_relative 'squiddy/trello_checklist'
+require_relative 'squiddy/trello'
 
 module Squiddy
   # TrelloPullRequest automatically creates a checklist on a Trello card called
@@ -23,7 +23,7 @@ module Squiddy
       return nil unless trello_card
 
       begin
-        trello = Squiddy::TrelloChecklist.new(trello_card)
+        trello = Squiddy::Trello::Checklist.new(trello_card)
 
         item = pull_request.url
 
@@ -49,7 +49,7 @@ module Squiddy
             puts "#{item} marked as complete"
           end
         end
-      rescue Squiddy::TrelloChecklist::ChecklistNotFound => e
+      rescue Squiddy::Trello::Checklist::ChecklistNotFound => e
         e.message
       end
     end
