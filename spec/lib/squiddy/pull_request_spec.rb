@@ -14,7 +14,8 @@ RSpec.describe Squiddy::PullRequest do
       body: "I contain a matched-string",
       html_url: "https://github.com/test/repository/pull/1",
       state: "closed",
-      labels: [{name: 'test-label'}]
+      labels: [{name: 'test-label'}],
+      title: "Pull request name"
     })
   end
 
@@ -65,6 +66,12 @@ RSpec.describe Squiddy::PullRequest do
   describe '#body' do
     it 'returns the body of the pull request' do
       expect(subject.body).to eq("I contain a matched-string")
+    end
+  end
+
+  describe '#title' do
+    it 'returns the title of the pull request' do
+      expect(subject.title).to eq("Pull request name")
     end
   end
 end
