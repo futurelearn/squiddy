@@ -6,21 +6,16 @@ module Squiddy
       class CardNotFound < StandardError; end
       class ChecklistNotFound < StandardError; end
 
-      attr_reader :card_url, :client
+      attr_reader :card_url
 
-      def initialize(card_url, developer_public_key: nil, member_token: nil)
+      def initialize(card_url)
         @card_url = card_url
-
-        @client = Trello::Client.new(
-          developer_public_key: developer_public_key || ENV['SQUIDDY_TRELLO_DEVELOPER_PUBLIC_KEY'],
-          member_token: member_token || ENV['SQUIDDY_TRELLO_MEMBER_TOKEN']
-        )
       end
 
       def create_checklist
         return checklist if checklist_exist?
 
-        client.create(:checklist, name: "Pull Requests", "idCard" => card.id)
+        card.create_new_checklist('Pull Requests')
       end
 
       def checklist_exist?
@@ -69,7 +64,7 @@ module Squiddy
 
       def card
         begin
-          client.find(:card, card_id_from_url)
+          ::Trello::Card.find(card_id_from_url)
         rescue
           fail CardNotFound
         end

@@ -10,13 +10,12 @@ RSpec.describe Squiddy::Trello::Checklist do
     let(:unrelated_trello_checklist) { instance_double(Trello::Checklist, name: "Some other checklist") }
     let(:trello_checklist) { instance_double(Trello::Checklist) }
     let(:trello_card) { instance_double(Trello::Card, checklists: [unrelated_trello_checklist], id: 'a-long-card-id') }
-    let(:client) { double(Trello::Client, find: trello_card) }
+    let(:trello_checklist) { instance_double(::Trello::Checklist) }
+    let(:trello_card) { instance_double(::Trello::Card, checklists: [], id: 'a-long-card-id') }
 
     before do
-      allow(Trello::Client).to receive(:new).and_return(client)
-      allow(client).to receive(:find).with(:card, "https://trello.com/c/1234546789").and_return(trello_card)
-      allow(client).to receive(:create).with(:checklist, name: "Pull Requests", "idCard" => "a-long-card-id")
-        .and_return(trello_checklist)
+      allow(Trello::Card).to receive(:find).and_return(trello_card)
+      allow(trello_card).to receive(:create_new_checklist).and_return(trello_checklist)
       allow(trello_checklist).to receive(:add_item).and_return(200)
     end
 
@@ -56,14 +55,12 @@ RSpec.describe Squiddy::Trello::Checklist do
     let(:rest_response) { instance_double(RestClient::Response) }
     let(:unrelated_trello_checklist) { instance_double(Trello::Checklist, name: "Some other checklist") }
     let(:trello_checklist) { instance_double(Trello::Checklist, name: "Pull Requests", add_item: rest_response) }
-    let(:trello_card) { instance_double(Trello::Card, checklists: [trello_checklist, unrelated_trello_checklist], id: 'a-long-card-id') }
-    let(:client) { double(Trello::Client, find: trello_card) }
+    let(:trello_card) { instance_double(::Trello::Card, checklists: [trello_checklist, unrelated_trello_checklist], id: 'a-long-card-id') }
 
     before do
-      allow(Trello::Client).to receive(:new).and_return(client)
-      allow(client).to receive(:find).with(:card, "https://trello.com/c/1234546789").and_return(trello_card)
-      allow(client).to receive(:create).with(:checklist, name: "Pull Requests", "idCard" => "a-long-card-id")
-        .and_return(trello_checklist)
+      allow(Trello::Card).to receive(:find).and_return(trello_card)
+      allow(trello_card).to receive(:create_new_checklist).and_return(trello_checklist)
+
       allow(trello_checklist).to receive(:add_item).and_return(rest_response)
       allow(trello_checklist).to receive(:items).and_return([trello_item])
       allow(trello_checklist).to receive(:update_item_state).and_return(trello_checklist)
