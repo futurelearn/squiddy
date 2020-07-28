@@ -34,7 +34,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
     end
 
     it 'does nothing' do
-      expect(subject.run).to eq(nil)
+      expect(subject.run(pull_request_number: 1)).to eq(nil)
     end
   end
 
@@ -56,7 +56,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
         end
 
         it 'adds an item to a checklist' do
-          subject.run
+          subject.run(pull_request_number: 1)
           expect(trello_checklist).to have_received(:add_item).with(pr_url)
         end
       end
@@ -68,12 +68,12 @@ RSpec.describe Squiddy::TrelloPullRequest do
         end
 
         it 'creates a checklist' do
-          subject.run
+          subject.run(pull_request_number: 1)
           expect(trello_checklist).to have_received(:create_checklist)
         end
 
         it 'adds an item to a checklist' do
-          subject.run
+          subject.run(pull_request_number: 1)
           expect(trello_checklist).to have_received(:add_item).with(pr_url)
         end
       end
@@ -85,7 +85,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
         end
 
         it 'does nothing' do
-          subject.run
+          subject.run(pull_request_number: 1)
           expect(trello_checklist).to_not have_received(:add_item)
         end
       end
@@ -99,7 +99,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
         end
 
         it 'rescues an error' do
-          expect(subject.run).to eq("Squiddy::TrelloChecklist::ChecklistNotFound")
+          expect(subject.run(pull_request_number: 1)).to eq("Squiddy::TrelloChecklist::ChecklistNotFound")
         end
       end
 
@@ -109,7 +109,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
         end
 
         it 'raises an error' do
-          expect { subject.run }.to raise_error(Squiddy::TrelloChecklist::CardNotFound)
+          expect { subject.run(pull_request_number: 1) }.to raise_error(Squiddy::TrelloChecklist::CardNotFound)
         end
       end
     end
@@ -120,7 +120,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
       end
 
       it 'does nothing' do
-        subject.run
+        subject.run(pull_request_number: 1)
         expect(trello_checklist).to_not have_received(:add_item).with(pr_url)
       end
     end
@@ -143,7 +143,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
         end
 
         it 'gets marked as complete' do
-          subject.run
+          subject.run(pull_request_number: 1)
           expect(trello_checklist).to have_received(:mark_item_as_complete).with(pr_url)
         end
       end
@@ -154,7 +154,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
         end
 
         it 'does nothing' do
-          subject.run
+          subject.run(pull_request_number: 1)
           expect(trello_checklist).to_not have_received(:mark_item_as_complete)
         end
       end
@@ -167,7 +167,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
         end
 
         it 'rescues an error' do
-          expect(subject.run).to eq("Squiddy::TrelloChecklist::ChecklistNotFound")
+          expect(subject.run(pull_request_number: 1)).to eq("Squiddy::TrelloChecklist::ChecklistNotFound")
         end
       end
 
@@ -177,7 +177,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
         end
 
         it 'raises an error' do
-          expect { subject.run }.to raise_error(Squiddy::TrelloChecklist::CardNotFound)
+          expect { subject.run(pull_request_number: 1) }.to raise_error(Squiddy::TrelloChecklist::CardNotFound)
         end
       end
     end
@@ -188,7 +188,7 @@ RSpec.describe Squiddy::TrelloPullRequest do
       end
 
       it 'does nothing' do
-        subject.run
+        subject.run(pull_request_number: 1)
         expect(trello_checklist).to_not have_received(:mark_item_as_complete)
       end
     end

@@ -9,12 +9,13 @@ module Squiddy
   # If the Pull Request is in a closed state, then it marks the item as
   # complete
   class TrelloPullRequest
-    def self.run
+    def self.run(pull_request_number:)
+      fail "pull_request_number is nil" if pull_request_number.nil?
+
       event = Squiddy::Event.new
 
       return nil unless event.type == "pull_request"
-
-      pull_request = Squiddy::PullRequest.new(event.repository, event.pull_request_number)
+      pull_request = Squiddy::PullRequest.new(event.repository, pull_request_number)
 
       trello_regex = /https:\/\/trello\.com\/c\/\w+/
 

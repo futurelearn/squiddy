@@ -15,11 +15,11 @@ puts "GITHUB_REF: #{event.ref}"
 
 case event.type
 when "pull_request"
-  %w(trello_developer_public_key trello_member_token github_access_token).each do |env|
+  %w(trello_developer_public_key trello_member_token github_access_token issue_number).each do |env|
     check_environment_variable(env)
   end
 
-  Squiddy::TrelloPullRequest.run
+  Squiddy::TrelloPullRequest.run(pull_request_number: ENV['SQUIDDY_ISSUE_NUMBER'])
 else
   puts "Nothing to do!"
 end
