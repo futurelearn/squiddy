@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SQUIDDY_GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      SQUIDDY_ISSUE_NUMBER: ${{ github.event.issue.number }}
+      SQUIDDY_ISSUE_NUMBER: ${{ github.event.number }}
       SQUIDDY_TRELLO_DEVELOPER_PUBLIC_KEY: ${{ secrets.TRELLO_DEVELOPER_PUBLIC_KEY }}
       SQUIDDY_TRELLO_MEMBER_TOKEN: ${{ secrets.TRELLO_MEMBER_TOKEN }}
     steps:
