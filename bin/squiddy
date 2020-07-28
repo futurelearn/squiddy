@@ -10,7 +10,10 @@ def check_environment_variable(name)
   end
 end
 
-case Squiddy::Event.new.type
+event = Squiddy::Event.new
+puts "GITHUB_REF: #{event.ref}"
+
+case event.type
 when "pull_request"
   %w(trello_developer_public_key trello_member_token github_access_token).each do |env|
     check_environment_variable(env)
