@@ -7,8 +7,9 @@ RSpec.describe Squiddy::TrelloChecklist do
   subject { described_class.new("https://trello.com/c/1234546789") }
 
   context 'the checklist does not exist' do
+    let(:unrelated_trello_checklist) { instance_double(Trello::Checklist, name: "Some other checklist") }
     let(:trello_checklist) { instance_double(Trello::Checklist) }
-    let(:trello_card) { instance_double(Trello::Card, checklists: [], id: 'a-long-card-id') }
+    let(:trello_card) { instance_double(Trello::Card, checklists: [unrelated_trello_checklist], id: 'a-long-card-id') }
     let(:client) { double(Trello::Client, find: trello_card) }
 
     before do
@@ -53,8 +54,9 @@ RSpec.describe Squiddy::TrelloChecklist do
   context 'the checklist exists' do
     let(:trello_item) { instance_double(Trello::Item, name: "test", id: "1234") }
     let(:rest_response) { instance_double(RestClient::Response) }
+    let(:unrelated_trello_checklist) { instance_double(Trello::Checklist, name: "Some other checklist") }
     let(:trello_checklist) { instance_double(Trello::Checklist, name: "Pull Requests", add_item: rest_response) }
-    let(:trello_card) { instance_double(Trello::Card, checklists: [trello_checklist], id: 'a-long-card-id') }
+    let(:trello_card) { instance_double(Trello::Card, checklists: [trello_checklist, unrelated_trello_checklist], id: 'a-long-card-id') }
     let(:client) { double(Trello::Client, find: trello_card) }
 
     before do

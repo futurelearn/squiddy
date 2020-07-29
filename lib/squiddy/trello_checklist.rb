@@ -79,7 +79,9 @@ module Squiddy
     end
 
     def item_id(name)
-      i = card.checklists.first.items.find { |item| item.name == name }
+      fail ChecklistNotFound unless checklist_exist?
+
+      i = checklist.items.find { |item| item.name == name }
 
       return nil if i.nil?
 
