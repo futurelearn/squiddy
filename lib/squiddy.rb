@@ -28,13 +28,26 @@ module Squiddy
         item = pull_request.url
 
         if pull_request.open?
-          trello.create_checklist unless trello.checklist_exist?
+          puts "#{item} has been opened or edited"
 
-          trello.add_item(item) unless trello.item_exist?(item)
+          unless trello.checklist_exist?
+            trello.create_checklist
+            puts "Checklist created"
+          end
+
+          unless trello.item_exist?(item)
+            trello.add_item(item)
+            puts "Added #{item} to checklist"
+          end
         end
 
         if pull_request.closed?
-          trello.mark_item_as_complete(item) if trello.item_exist?(item)
+          puts "#{item} has been merged or closed"
+
+          if trello.item_exist?(item)
+            trello.mark_item_as_complete(item)
+            puts "#{item} marked as complete"
+          end
         end
       rescue Squiddy::TrelloChecklist::ChecklistNotFound => e
         e.message
