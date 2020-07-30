@@ -84,13 +84,14 @@ module Squiddy
         #{commit_title}
 
         Squiddy-bot has merged the branch #{branch}
-        as requested by #{comment_author} in the PR number #{pr_number}.
+        into #{base_branch} after rebase as requested by #{comment_author}
+        in the PR number ##{pr_number}.
 
         Further details are listed below.
 
         Squiddy out.
 
-        Optional additional details:
+        Triggering comment with optional details:
 
         #{comment}
       MESSAGE
