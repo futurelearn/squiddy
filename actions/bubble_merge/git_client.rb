@@ -76,7 +76,7 @@ module Squiddy
     private
 
     def commit_title
-      "PR no. #{pr_number} merged"
+      "PR ##{pr_number} merged"
     end
 
     def commit_message
