@@ -78,9 +78,7 @@ module Squiddy
 
         dependabot_label = board.labels.find {|label| label.name == "Dependabot" } || ::Trello::Label.create(board_id: board_id, name: "Dependabot")
 
-        body = [pull_request.body, pull_request.url].join("\n\n")
-
-        ::Trello::Card.create(list_id: list_create_id, name: pull_request.title, desc: body, card_labels: [dependabot_label.id], pos: "bottom")
+        ::Trello::Card.create(list_id: list_create_id, name: pull_request.title, desc: pull_request.url, card_labels: [dependabot_label.id], pos: "bottom")
       end
 
       if pull_request.closed?

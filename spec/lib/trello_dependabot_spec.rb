@@ -69,7 +69,7 @@ RSpec.describe Squiddy::TrelloDependabot do
 
         it 'creates the card in the defined list' do
           subject.run(board_id: 1234, list_create_id: 1234, list_done_id: 5678, github_label: 'dependabot', pull_request_number: 1)
-          expect(::Trello::Card).to have_received(:create).with(list_id: 1234, name: "Title text", desc: "Body text\n\nhttps://github.com/test/repository/pull/1", card_labels: ["some-label-id"], pos: "bottom")
+          expect(::Trello::Card).to have_received(:create).with(list_id: 1234, name: "Title text", desc: "https://github.com/test/repository/pull/1", card_labels: ["some-label-id"], pos: "bottom")
         end
       end
     end
