@@ -1,22 +1,21 @@
 require 'spec_helper'
 require 'rest-client'
 
-require_relative '../../../lib/squiddy/trello_checklist'
+require_relative '../../../../lib/squiddy/trello'
 
-RSpec.describe Squiddy::TrelloChecklist do
+RSpec.describe Squiddy::Trello::Checklist do
   subject { described_class.new("https://trello.com/c/1234546789") }
 
   context 'the checklist does not exist' do
     let(:unrelated_trello_checklist) { instance_double(Trello::Checklist, name: "Some other checklist") }
     let(:trello_checklist) { instance_double(Trello::Checklist) }
     let(:trello_card) { instance_double(Trello::Card, checklists: [unrelated_trello_checklist], id: 'a-long-card-id') }
-    let(:client) { double(Trello::Client, find: trello_card) }
+    let(:trello_checklist) { instance_double(::Trello::Checklist) }
+    let(:trello_card) { instance_double(::Trello::Card, checklists: [], id: 'a-long-card-id') }
 
     before do
-      allow(Trello::Client).to receive(:new).and_return(client)
-      allow(client).to receive(:find).with(:card, "https://trello.com/c/1234546789").and_return(trello_card)
-      allow(client).to receive(:create).with(:checklist, name: "Pull Requests", "idCard" => "a-long-card-id")
-        .and_return(trello_checklist)
+      allow(Trello::Card).to receive(:find).and_return(trello_card)
+      allow(trello_card).to receive(:create_new_checklist).and_return(trello_checklist)
       allow(trello_checklist).to receive(:add_item).and_return(200)
     end
 
@@ -34,19 +33,19 @@ RSpec.describe Squiddy::TrelloChecklist do
 
     describe '#item_exist?' do
       it 'raises an error' do
-        expect { subject.item_exist?('test') }.to raise_error(Squiddy::TrelloChecklist::ChecklistNotFound)
+        expect { subject.item_exist?('test') }.to raise_error(Squiddy::Trello::Checklist::ChecklistNotFound)
       end
     end
 
     describe '#add_item' do
       it 'raises an error' do
-        expect { subject.add_item('test') }.to raise_error(Squiddy::TrelloChecklist::ChecklistNotFound)
+        expect { subject.add_item('test') }.to raise_error(Squiddy::Trello::Checklist::ChecklistNotFound)
       end
     end
 
     describe '#mark_item_as_complete' do
       it 'raises an error' do
-        expect { subject.add_item('test') }.to raise_error(Squiddy::TrelloChecklist::ChecklistNotFound)
+        expect { subject.add_item('test') }.to raise_error(Squiddy::Trello::Checklist::ChecklistNotFound)
       end
     end
   end
@@ -56,14 +55,12 @@ RSpec.describe Squiddy::TrelloChecklist do
     let(:rest_response) { instance_double(RestClient::Response) }
     let(:unrelated_trello_checklist) { instance_double(Trello::Checklist, name: "Some other checklist") }
     let(:trello_checklist) { instance_double(Trello::Checklist, name: "Pull Requests", add_item: rest_response) }
-    let(:trello_card) { instance_double(Trello::Card, checklists: [trello_checklist, unrelated_trello_checklist], id: 'a-long-card-id') }
-    let(:client) { double(Trello::Client, find: trello_card) }
+    let(:trello_card) { instance_double(::Trello::Card, checklists: [trello_checklist, unrelated_trello_checklist], id: 'a-long-card-id') }
 
     before do
-      allow(Trello::Client).to receive(:new).and_return(client)
-      allow(client).to receive(:find).with(:card, "https://trello.com/c/1234546789").and_return(trello_card)
-      allow(client).to receive(:create).with(:checklist, name: "Pull Requests", "idCard" => "a-long-card-id")
-        .and_return(trello_checklist)
+      allow(Trello::Card).to receive(:find).and_return(trello_card)
+      allow(trello_card).to receive(:create_new_checklist).and_return(trello_checklist)
+
       allow(trello_checklist).to receive(:add_item).and_return(rest_response)
       allow(trello_checklist).to receive(:items).and_return([trello_item])
       allow(trello_checklist).to receive(:update_item_state).and_return(trello_checklist)
@@ -120,15 +117,15 @@ RSpec.describe Squiddy::TrelloChecklist do
     let(:non_url) { "some-string" }
 
     it 'returns the card ID from a given Trello card URL' do
-      expect(Squiddy::TrelloChecklist.new(good_url).card_id_from_url).to eq('1234abcd')
+      expect(Squiddy::Trello::Checklist.new(good_url).card_id_from_url).to eq('1234abcd')
     end
 
     it 'returns an error when given a non-card URL' do
-      expect { Squiddy::TrelloChecklist.new(bad_url).card_id_from_url }.to raise_error(Squiddy::TrelloChecklist::CardNotFound)
+      expect { Squiddy::Trello::Checklist.new(bad_url).card_id_from_url }.to raise_error(Squiddy::Trello::Checklist::CardNotFound)
     end
 
     it 'returns an error when not a URL' do
-      expect { Squiddy::TrelloChecklist.new(non_url).card_id_from_url }.to raise_error(StandardError)
+      expect { Squiddy::Trello::Checklist.new(non_url).card_id_from_url }.to raise_error(StandardError)
     end
   end
 end
