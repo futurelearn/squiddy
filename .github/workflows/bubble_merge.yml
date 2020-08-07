@@ -31,7 +31,7 @@ jobs:
               repo: context.repo.repo,
               body: 'Rebase was not possible. Please rebase manually and try again.'
             })
-      - uses: futurelearn/squiddy/actions/bubble_merge@update-merge-commit-message
+      - uses: futurelearn/squiddy/actions/bubble_merge@master
         env:
           GITHUB_TOKEN: ${{ secrets.SQUIDDY_BOT_GITHUB_TOKEN }}
           GITHUB_EVENT: ${{ toJson(github.event) }}
