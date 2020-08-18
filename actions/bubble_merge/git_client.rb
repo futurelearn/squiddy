@@ -18,11 +18,9 @@ module Squiddy
 
     def bubble_merge
       unless client.pull_merged?(repo, pr_number)
-        comment_start
         begin
           merge_bubble_branch_into_master
           delete_branch
-          comment_finish
         rescue Octokit::Conflict => e
           client.add_comment(repo, pr_number, 'There was a merge conflict. Auto-merging could not be performed. Please fix all conflicts and try again.')
         end
@@ -39,14 +37,6 @@ module Squiddy
 
     def delete_branch
       client.delete_branch(repo, branch)
-    end
-
-    def comment_start
-      client.add_comment(repo, pr_number, 'Roger that!')
-    end
-
-    def comment_finish
-      client.add_comment(repo, pr_number, 'Merged into master')
     end
 
     def branch
