@@ -21,8 +21,14 @@ module Squiddy
         begin
           merge_bubble_branch_into_master
           delete_branch
-        rescue Octokit::Conflict => e
-          client.add_comment(repo, pr_number, 'There was a merge conflict. Auto-merging could not be performed. Please fix all conflicts and try again.')
+        rescue StandardError => e
+          message = <<~MESSAGE
+            Oh no! Auto-merging could not be performed. Please fix all merge conflicts and try again.
+
+            #### Error message:
+            #{e&.message}
+          MESSAGE
+          client.add_comment(repo, pr_number, message)
         end
       end
     end

@@ -26,7 +26,7 @@ RSpec.describe Squiddy::GitClient do
       head: { ref: 'test-branch' }
     }
   }
-  let(:octokit_client) { instance_double('Octokit::Client', merge: nil, delete_branch: nil) }
+  let(:octokit_client) { instance_double('Octokit::Client', merge: nil, delete_branch: nil, add_comment: nil) }
 
   before do
     stub_const('ENV', 'GITHUB_EVENT' => event, 'GITHUB_TOKEN' => 'token')
@@ -69,6 +69,31 @@ RSpec.describe Squiddy::GitClient do
     it 'deletes the branch' do
       expect(octokit_client).to receive(:delete_branch)
       subject.bubble_merge
+    end
+
+    context 'when an error occurs' do
+      let(:error_message) {
+        <<~MESSAGE
+          Oh no! Auto-merging could not be performed. Please fix all merge conflicts and try again.
+
+          #### Error message:
+          Octokit::Conflict
+        MESSAGE
+      }
+
+      before do
+        allow(octokit_client).to receive(:merge).and_raise(Octokit::Conflict.new)
+      end
+
+      it 'prints an error message' do
+        expect(octokit_client).to receive(:add_comment).with('test-user/test-repo', 'test-pr-number', error_message)
+        subject.bubble_merge
+      end
+
+      it 'does not delete the branch' do
+        expect(octokit_client).not_to receive(:delete_branch)
+        subject.bubble_merge
+      end
     end
   end
 end
