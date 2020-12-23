@@ -16,7 +16,7 @@ RSpec.describe Squiddy::GitClient do
         'number': 'test-pr-number'
       },
       'repository': {
-        'full_name': 'test-repo'
+        'full_name': 'test-user/test-repo'
       }
     }.to_json
   }
@@ -31,7 +31,7 @@ RSpec.describe Squiddy::GitClient do
   before do
     stub_const('ENV', 'GITHUB_EVENT' => event, 'GITHUB_TOKEN' => 'token')
     allow(Octokit::Client).to receive(:new).and_return(octokit_client)
-    allow(octokit_client).to receive(:pull_request).with('test-repo', 'test-pr-number').and_return(pr_data)
+    allow(octokit_client).to receive(:pull_request).with('test-user/test-repo', 'test-pr-number').and_return(pr_data)
   end
 
   it 'returns the branch name' do
@@ -43,7 +43,7 @@ RSpec.describe Squiddy::GitClient do
   end
 
   it 'returns repo name' do
-    expect(subject.repo).to eq('test-repo')
+    expect(subject.repo).to eq('test-user/test-repo')
   end
 
   it 'returns pr number' do
