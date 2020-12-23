@@ -26,11 +26,49 @@ RSpec.describe Squiddy::GitClient do
       head: { ref: 'test-branch' }
     }
   }
-  let(:octokit_client) { instance_double('Octokit::Client') }
+  let(:octokit_client) { instance_double('Octokit::Client', merge: nil, delete_branch: nil) }
 
   before do
     stub_const('ENV', 'GITHUB_EVENT' => event, 'GITHUB_TOKEN' => 'token')
     allow(Octokit::Client).to receive(:new).and_return(octokit_client)
     allow(octokit_client).to receive(:pull_request).with('test-user/test-repo', 'test-pr-number').and_return(pr_data)
+    allow(octokit_client).to receive(:pull_merged?).and_return(false)
+    allow(octokit_client).to receive_message_chain(:list_commits, :last, :sha).and_return('1234')
+  end
+
+  context '#bubble_merge' do
+    let(:commit_message) {
+      <<~MESSAGE
+        PR #test-pr-number merged
+
+        Squiddy-bot has merged the branch test-branch
+        into test-base-branch after rebase as requested by test-user
+        in the PR #test-pr-number.
+
+        Further details are listed below.
+
+        Squiddy out.
+
+      MESSAGE
+    }
+
+    it 'merges successfully' do
+      expect(octokit_client).to receive(:merge).with(
+        'test-user/test-repo',
+        'test-base-branch',
+        'test-branch',
+        {
+          commit_message: commit_message,
+          merge_method: 'rebase',
+          sha: '1234'
+        }
+      )
+      subject.bubble_merge
+    end
+
+    it 'deletes the branch' do
+      expect(octokit_client).to receive(:delete_branch)
+      subject.bubble_merge
+    end
   end
 end
