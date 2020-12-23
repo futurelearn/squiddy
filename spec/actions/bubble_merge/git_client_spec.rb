@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-require_relative '../../../lib/squiddy/git_client'
+require_relative '../../../actions/bubble_merge/git_client'
 
 RSpec.describe Squiddy::GitClient do
   subject { described_class.new }
