@@ -95,5 +95,21 @@ RSpec.describe Squiddy::GitClient do
         subject.bubble_merge
       end
     end
+
+    context 'when the PR has already been merged' do
+      before do
+        allow(octokit_client).to receive(:pull_merged?).and_return(true)
+      end
+
+      it 'does not attempt to merge again' do
+        expect(octokit_client).not_to receive(:merge)
+        subject.bubble_merge
+      end
+
+      it 'does not delete the branch' do
+        expect(octokit_client).not_to receive(:delete_branch)
+        subject.bubble_merge
+      end
+    end
   end
 end
