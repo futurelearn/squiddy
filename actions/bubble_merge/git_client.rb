@@ -19,7 +19,7 @@ module Squiddy
     def bubble_merge
       unless client.pull_merged?(repo, pr_number)
         begin
-          merge_bubble_branch_into_master
+          merge
           delete_branch
         rescue StandardError => e
           message = <<~MESSAGE
@@ -35,7 +35,7 @@ module Squiddy
 
     private
 
-    def merge_bubble_branch_into_master
+    def merge
       client.merge(
         repo,
         base_branch,
@@ -43,17 +43,17 @@ module Squiddy
         {
           merge_method: 'rebase',
           commit_message: commit_message,
-          sha: master_sha
+          sha: main_sha
         }
       )
     end
 
-    def master_sha
-      client.list_commits(repo).last.sha
-    end
-
     def delete_branch
       client.delete_branch(repo, branch)
+    end
+
+    def main_sha
+      client.list_commits(repo).last.sha
     end
 
     def branch
