@@ -20,20 +20,29 @@ RSpec.describe Squiddy::GitClient do
       }
     }.to_json
   }
-  let(:pr_data) {
-    {
-      base: { ref: 'test-base-branch' },
-      head: { ref: 'test-branch' }
-    }
-  }
+  let(:pr_data) { { base: { ref: 'test-base-branch' }, head: { ref: 'test-branch' } } }
   let(:octokit_client) { instance_double('Octokit::Client', merge: nil, delete_branch: nil, add_comment: nil) }
+  let(:head_commit_status) do
+    {
+      total_count: '1',
+      check_suites: [
+        {
+          id: '1',
+          status: 'completed',
+          conclusion: 'success'
+        }
+      ]
+    }
+  end
 
   before do
     stub_const('ENV', 'GITHUB_EVENT' => event, 'GITHUB_TOKEN' => 'token')
     allow(Octokit::Client).to receive(:new).and_return(octokit_client)
     allow(octokit_client).to receive(:pull_request).with('test-user/test-repo', 'test-pr-number').and_return(pr_data)
-    allow(octokit_client).to receive(:pull_merged?).and_return(false)
     allow(octokit_client).to receive_message_chain(:list_commits, :last, :sha).and_return('1234')
+    allow(octokit_client).to receive(:pull_merged?).and_return(false)
+    allow(octokit_client).to receive_message_chain(:pull_request_commits, :last, :sha).and_return('5678')
+    allow(octokit_client).to receive(:check_suites_for_ref).and_return(head_commit_status)
   end
 
   context '#bubble_merge' do
@@ -111,5 +120,56 @@ RSpec.describe Squiddy::GitClient do
         subject.bubble_merge
       end
     end
+
+    context 'when CI checks have not finished' do
+      let(:head_commit_status) do
+        {
+          total_count: '2',
+          check_suites: [
+            {
+              id: '1',
+              status: 'completed',
+              conclusion: 'success'
+            },
+            {
+              id: '2',
+              status: 'in_progress'
+            }
+          ]
+        }
+      end
+
+      it 'does not merge the PR' do
+        expect(octokit_client).not_to receive(:merge)
+        subject.bubble_merge
+      end
+    end
+
+    context 'when CI checks have failed' do
+      let(:head_commit_status) do
+        {
+          total_count: '2',
+          check_suites: [
+            {
+              id: '1',
+              status: 'completed',
+              conclusion: 'success'
+            },
+            {
+              id: '2',
+              status: 'completed',
+              conclusion: 'failure'
+            }
+          ]
+        }
+      end
+
+      it 'does not merge the PR' do
+        expect(octokit_client).not_to receive(:merge)
+        subject.bubble_merge
+      end
+    end
   end
+
+
 end

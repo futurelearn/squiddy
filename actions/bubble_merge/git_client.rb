@@ -22,8 +22,14 @@ module Squiddy
     def bubble_merge
       if already_merged?
         client.add_comment(repo, pr_number, 'This PR is already merged')
-      else
+      elsif pr_status == 'pending'
+        client.add_comment(repo, pr_number, 'There are still pending CI checks.')
+      elsif pr_status == 'failure'
+        client.add_comment(repo, pr_number, 'One or more CI checks have failed.')
+      elsif pr_status == 'success'
         merge_and_close_pr
+      else
+        client.add_comment(repo, pr_number, 'Unknown CI status. Merge was not possible.')
       end
     end
 
