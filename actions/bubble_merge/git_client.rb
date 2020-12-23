@@ -28,7 +28,16 @@ module Squiddy
     end
 
     def merge_bubble_branch_into_master
-      client.merge(repo, base_branch, branch, { merge_method: 'rebase', commit_message: commit_message, sha: master_sha })
+      client.merge(
+        repo,
+        base_branch,
+        branch,
+        {
+          merge_method: 'rebase',
+          commit_message: commit_message,
+          sha: master_sha
+        }
+      )
     end
 
     def master_sha
@@ -69,21 +78,22 @@ module Squiddy
       "PR ##{pr_number} merged"
     end
 
+    def optional_message
+      comment.nil? ? '' : "\n\nTriggering comment with optional details:\n\n#{comment}"
+    end
+
     def commit_message
       <<~MESSAGE
         #{commit_title}
 
         Squiddy-bot has merged the branch #{branch}
         into #{base_branch} after rebase as requested by #{comment_author}
-        in the PR number ##{pr_number}.
+        in the PR ##{pr_number}.
 
         Further details are listed below.
 
         Squiddy out.
-
-        Triggering comment with optional details:
-
-        #{comment}
+        #{optional_message}
       MESSAGE
     end
 
