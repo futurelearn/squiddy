@@ -5,6 +5,9 @@ module Squiddy
   class GitClient
     attr_reader :client, :event, :pr, :repo
 
+    CHECK_STATUSES = %w[queued in_progress completed].freeze
+    CHECK_CONCLUSIONS = %w[success failure neutral cancelled skipped timed_out action_required stale].freeze
+
     def initialize
       unless ENV.key?("GITHUB_TOKEN")
         raise "No GITHUB_TOKEN env var found"
@@ -74,6 +77,26 @@ module Squiddy
 
     def pr_number
       event.dig('issue', 'number')
+    end
+
+    def pr_status
+      checks = head_commit_checks[:check_suites]
+
+      if checks.any? { |check| check[:status] != 'completed' }
+        'pending'
+      elsif checks.any? { |check| check[:conclusion] != 'success' }
+        'failure'
+      else
+        'success'
+      end
+    end
+
+    def head_commit_checks
+      client.check_suites_for_ref(repo, head_commit_sha)
+    end
+
+    def head_commit_sha
+      client.pull_request_commits(repo, pr_number).last.sha
     end
 
     def comment_author
