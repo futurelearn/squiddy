@@ -29,10 +29,7 @@ RSpec.describe Squiddy::GitClient do
   }
 
   before do
-    allow(ENV).to receive(:[]).with('GITHUB_EVENT').and_return(event)
-    allow(ENV).to receive(:[]).with('GITHUB_TOKEN').and_return('token')
-    allow(ENV).to receive(:key?).with('GITHUB_EVENT').and_return(true)
-    allow(ENV).to receive(:key?).with('GITHUB_TOKEN').and_return(true)
+    stub_const('ENV', 'GITHUB_EVENT' => event, 'GITHUB_TOKEN' => 'token')
     allow(Octokit::Client).to receive(:new).with({ access_token: 'token' }).and_return(oktokit_client)
     allow(oktokit_client).to receive(:pull_request).with('test-repo', 'test-pr-number').and_return(pr_data)
   end
