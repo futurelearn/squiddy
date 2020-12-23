@@ -27,6 +27,8 @@ module Squiddy
       end
     end
 
+    private
+
     def merge_bubble_branch_into_master
       client.merge(
         repo,
@@ -71,8 +73,6 @@ module Squiddy
     def comment
       event.dig('comment', 'body')
     end
-
-    private
 
     def commit_title
       "PR ##{pr_number} merged"

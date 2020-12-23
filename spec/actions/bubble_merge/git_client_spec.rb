@@ -33,24 +33,4 @@ RSpec.describe Squiddy::GitClient do
     allow(Octokit::Client).to receive(:new).and_return(octokit_client)
     allow(octokit_client).to receive(:pull_request).with('test-user/test-repo', 'test-pr-number').and_return(pr_data)
   end
-
-  it 'returns the branch name' do
-    expect(subject.branch).to eq('test-branch')
-  end
-
-  it 'returns the base branch name' do
-    expect(subject.base_branch).to eq('test-base-branch')
-  end
-
-  it 'returns repo name' do
-    expect(subject.repo).to eq('test-user/test-repo')
-  end
-
-  it 'returns pr number' do
-    expect(subject.pr_number).to eq('test-pr-number')
-  end
-
-  it 'returns the pr' do
-    expect(subject.pr).to eq(pr_data)
-  end
 end
