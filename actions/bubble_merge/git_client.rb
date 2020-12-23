@@ -17,23 +17,31 @@ module Squiddy
     end
 
     def bubble_merge
-      unless client.pull_merged?(repo, pr_number)
-        begin
-          merge
-          delete_branch
-        rescue StandardError => e
-          message = <<~MESSAGE
-            Oh no! Auto-merging could not be performed. Please fix all merge conflicts and try again.
-
-            #### Error message:
-            #{e&.message}
-          MESSAGE
-          client.add_comment(repo, pr_number, message)
-        end
+      if already_merged?
+        client.add_comment(repo, pr_number, 'This PR is already merged')
+      else
+        merge_and_close_pr
       end
     end
 
     private
+
+    def already_merged?
+      client.pull_merged?(repo, pr_number)
+    end
+
+    def merge_and_close_pr
+      merge
+      delete_branch
+    rescue StandardError => e
+      message = <<~MESSAGE
+        Oh no! Auto-merging could not be performed. Please fix all merge conflicts and try again.
+
+        #### Error message:
+        #{e&.message}
+      MESSAGE
+      client.add_comment(repo, pr_number, message)
+    end
 
     def merge
       client.merge(
