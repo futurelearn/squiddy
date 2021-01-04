@@ -1,4 +1,4 @@
-FROM ruby
+FROM ruby:alpine
 
 LABEL "com.github.actions.name"="Bubble Merge"
 LABEL "com.github.actions.description"="This does a bubble merge!"
