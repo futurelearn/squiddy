@@ -5,6 +5,9 @@ module Squiddy
   class GitClient
     attr_reader :client, :event, :pr, :repo
 
+    CHECK_STATUSES = %w[queued in_progress completed].freeze
+    CHECK_CONCLUSIONS = %w[success failure neutral cancelled skipped timed_out action_required stale].freeze
+
     def initialize
       unless ENV.key?("GITHUB_TOKEN")
         raise "No GITHUB_TOKEN env var found"
@@ -17,26 +20,57 @@ module Squiddy
     end
 
     def bubble_merge
-      unless client.pull_merged?(repo, pr_number)
-        begin
-          merge_bubble_branch_into_master
-          delete_branch
-        rescue Octokit::Conflict => e
-          client.add_comment(repo, pr_number, 'There was a merge conflict. Auto-merging could not be performed. Please fix all conflicts and try again.')
-        end
+      if already_merged?
+        client.add_comment(repo, pr_number, 'This PR is already merged')
+      elsif pr_status == 'pending'
+        client.add_comment(repo, pr_number, 'There are still pending CI checks.')
+      elsif pr_status == 'failure'
+        client.add_comment(repo, pr_number, 'One or more CI checks have failed.')
+      elsif pr_status == 'success'
+        merge_and_close_pr
+      else
+        client.add_comment(repo, pr_number, 'Unknown CI status. Merge was not possible.')
       end
     end
 
-    def merge_bubble_branch_into_master
-      client.merge(repo, base_branch, branch, { merge_method: 'rebase', commit_message: commit_message, sha: master_sha })
+    private
+
+    def already_merged?
+      client.pull_merged?(repo, pr_number)
     end
 
-    def master_sha
-      client.list_commits(repo).last.sha
+    def merge_and_close_pr
+      merge
+      delete_branch
+    rescue StandardError => e
+      message = <<~MESSAGE
+        Oh no! Auto-merging could not be performed. Please fix all merge conflicts and try again.
+
+        #### Error message:
+        #{e&.message}
+      MESSAGE
+      client.add_comment(repo, pr_number, message)
+    end
+
+    def merge
+      client.merge(
+        repo,
+        base_branch,
+        branch,
+        {
+          merge_method: 'rebase',
+          commit_message: commit_message,
+          sha: main_sha
+        }
+      )
     end
 
     def delete_branch
       client.delete_branch(repo, branch)
+    end
+
+    def main_sha
+      client.list_commits(repo).last.sha
     end
 
     def branch
@@ -51,6 +85,26 @@ module Squiddy
       event.dig('issue', 'number')
     end
 
+    def pr_status
+      checks = head_commit_checks[:check_suites]
+
+      if checks.any? { |check| check[:status] != 'completed' }
+        'pending'
+      elsif checks.any? { |check| check[:conclusion] != 'success' }
+        'failure'
+      else
+        'success'
+      end
+    end
+
+    def head_commit_checks
+      client.check_suites_for_ref(repo, head_commit_sha)
+    end
+
+    def head_commit_sha
+      client.pull_request_commits(repo, pr_number).last.sha
+    end
+
     def comment_author
       event.dig('comment', 'user', 'login')
     end
@@ -63,10 +117,12 @@ module Squiddy
       event.dig('comment', 'body')
     end
 
-    private
-
     def commit_title
       "PR ##{pr_number} merged"
+    end
+
+    def optional_message
+      comment.nil? ? '' : "\n\nTriggering comment with optional details:\n\n#{comment}"
     end
 
     def commit_message
@@ -75,15 +131,12 @@ module Squiddy
 
         Squiddy-bot has merged the branch #{branch}
         into #{base_branch} after rebase as requested by #{comment_author}
-        in the PR number ##{pr_number}.
+        in the PR ##{pr_number}.
 
         Further details are listed below.
 
         Squiddy out.
-
-        Triggering comment with optional details:
-
-        #{comment}
+        #{optional_message}
       MESSAGE
     end
 
