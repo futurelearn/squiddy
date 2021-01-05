@@ -120,56 +120,5 @@ RSpec.describe Squiddy::GitClient do
         subject.bubble_merge
       end
     end
-
-    context 'when CI checks have not finished' do
-      let(:head_commit_status) do
-        {
-          total_count: '2',
-          check_suites: [
-            {
-              id: '1',
-              status: 'completed',
-              conclusion: 'success'
-            },
-            {
-              id: '2',
-              status: 'in_progress'
-            }
-          ]
-        }
-      end
-
-      it 'does not merge the PR' do
-        expect(octokit_client).not_to receive(:merge)
-        subject.bubble_merge
-      end
-    end
-
-    context 'when CI checks have failed' do
-      let(:head_commit_status) do
-        {
-          total_count: '2',
-          check_suites: [
-            {
-              id: '1',
-              status: 'completed',
-              conclusion: 'success'
-            },
-            {
-              id: '2',
-              status: 'completed',
-              conclusion: 'failure'
-            }
-          ]
-        }
-      end
-
-      it 'does not merge the PR' do
-        expect(octokit_client).not_to receive(:merge)
-        subject.bubble_merge
-      end
-    end
   end
-
-
 end
