@@ -34,6 +34,7 @@ RSpec.describe Squiddy::GitClient do
       ]
     }
   end
+  let(:repository) { double("Repository", delete_branch_on_merge: false) }
 
   before do
     stub_const('ENV', 'GITHUB_EVENT' => event, 'GITHUB_TOKEN' => 'token')
@@ -43,6 +44,7 @@ RSpec.describe Squiddy::GitClient do
     allow(octokit_client).to receive(:pull_merged?).and_return(false)
     allow(octokit_client).to receive_message_chain(:pull_request_commits, :last, :sha).and_return('5678')
     allow(octokit_client).to receive(:check_suites_for_ref).and_return(head_commit_status)
+    allow(octokit_client).to receive(:repository).with('test-user/test-repo').and_return(repository)
   end
 
   context '#bubble_merge' do
@@ -116,6 +118,15 @@ RSpec.describe Squiddy::GitClient do
       end
 
       it 'does not delete the branch' do
+        expect(octokit_client).not_to receive(:delete_branch)
+        subject.bubble_merge
+      end
+    end
+
+    context 'when the repository auto deletes branches on merge' do
+      let(:repository) { double(delete_branch_on_merge: true) }
+
+      it 'skips deleting the branch' do
         expect(octokit_client).not_to receive(:delete_branch)
         subject.bubble_merge
       end
