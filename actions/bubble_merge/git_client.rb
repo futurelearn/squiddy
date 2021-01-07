@@ -3,7 +3,7 @@ require "json"
 
 module Squiddy
   class GitClient
-    attr_reader :client, :event, :pr
+    attr_reader :client, :event, :pr, :repo
 
     CHECK_STATUSES = %w[queued in_progress completed].freeze
     CHECK_CONCLUSIONS = %w[success failure neutral cancelled skipped timed_out action_required stale].freeze
@@ -16,6 +16,7 @@ module Squiddy
       @client = Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
       @event = git_event
       @pr = pull_request
+      @repo = repository
     end
 
     def bubble_merge
@@ -59,6 +60,8 @@ module Squiddy
     end
 
     def delete_branch
+      return if repo.delete_branch_on_merge
+
       client.delete_branch(repo_name, branch)
     end
 
@@ -147,6 +150,10 @@ module Squiddy
 
     def pull_request
       client.pull_request(repo_name, pr_number)
+    end
+
+    def repository
+      client.repository(repo_name)
     end
   end
 end
