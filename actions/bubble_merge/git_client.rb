@@ -114,7 +114,7 @@ module Squiddy
     end
 
     def commit_title
-      "PR ##{pr_number} merged"
+      "Merge branch '#{branch}' into #{base_branch}"
     end
 
     def optional_message
@@ -127,7 +127,7 @@ module Squiddy
 
         Squiddy-bot has merged the branch #{branch}
         into #{base_branch} after rebase as requested by #{comment_author}
-        in the PR ##{pr_number}.
+        in PR ##{pr_number}.
 
         Further details are listed below.
 

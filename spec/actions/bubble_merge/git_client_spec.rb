@@ -50,11 +50,11 @@ RSpec.describe Squiddy::GitClient do
   context '#bubble_merge' do
     let(:commit_message) {
       <<~MESSAGE
-        PR #test-pr-number merged
+        Merge branch 'test-branch' into test-base-branch
 
         Squiddy-bot has merged the branch test-branch
         into test-base-branch after rebase as requested by test-user
-        in the PR #test-pr-number.
+        in PR #test-pr-number.
 
         Further details are listed below.
 
