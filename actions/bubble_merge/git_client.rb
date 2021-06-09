@@ -27,6 +27,10 @@ module Squiddy
       end
     end
 
+    def rebase
+      client.update_branch(repo_name, branch, main_sha, false)
+    end
+
     private
 
     def already_merged?

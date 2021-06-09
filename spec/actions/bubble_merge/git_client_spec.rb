@@ -77,6 +77,16 @@ RSpec.describe Squiddy::GitClient do
       subject.bubble_merge
     end
 
+    it 'rebases successfully' do
+      expect(octokit_client).to receive(:update_branch).with(
+        'test-user/test-repo',
+        'test-branch',
+        '1234',
+        false
+      )
+      subject.rebase
+    end
+
     it 'deletes the branch' do
       expect(octokit_client).to receive(:delete_branch)
       subject.bubble_merge
