@@ -1,7 +1,7 @@
 name: Bubble Merge
 on:
   issue_comment:
-    types: [created]
+    types: [created, edited]
     branches-ignore:
       - master
 
