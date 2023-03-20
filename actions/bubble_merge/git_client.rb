@@ -81,22 +81,6 @@ module Squiddy
       event.dig('issue', 'number')
     end
 
-    def pr_status
-      checks = head_commit_checks[:check_suites]
-
-      if checks.any? { |check| check[:status] != 'completed' }
-        'pending'
-      elsif checks.any? { |check| check[:conclusion] != 'success' }
-        'failure'
-      else
-        'success'
-      end
-    end
-
-    def head_commit_checks
-      client.check_suites_for_ref(repo_name, head_commit_sha)
-    end
-
     def head_commit_sha
       client.pull_request_commits(repo_name, pr_number).last.sha
     end

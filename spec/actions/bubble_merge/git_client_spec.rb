@@ -22,18 +22,6 @@ RSpec.describe Squiddy::GitClient do
   }
   let(:pr_data) { { base: { ref: 'test-base-branch' }, head: { ref: 'test-branch' } } }
   let(:octokit_client) { instance_double('Octokit::Client', merge: nil, delete_branch: nil, add_comment: nil) }
-  let(:head_commit_status) do
-    {
-      total_count: '1',
-      check_suites: [
-        {
-          id: '1',
-          status: 'completed',
-          conclusion: 'success'
-        }
-      ]
-    }
-  end
   let(:repository) { double("Repository", delete_branch_on_merge: false) }
 
   before do
@@ -43,7 +31,6 @@ RSpec.describe Squiddy::GitClient do
     allow(octokit_client).to receive_message_chain(:list_commits, :last, :sha).and_return('1234')
     allow(octokit_client).to receive(:pull_merged?).and_return(false)
     allow(octokit_client).to receive_message_chain(:pull_request_commits, :last, :sha).and_return('5678')
-    allow(octokit_client).to receive(:check_suites_for_ref).and_return(head_commit_status)
     allow(octokit_client).to receive(:repository).with('test-user/test-repo').and_return(repository)
   end
 
