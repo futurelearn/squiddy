@@ -3,7 +3,7 @@ require "json"
 
 module Squiddy
   class GitClient
-    attr_reader :client, :event, :pr, :repo
+    attr_reader :client, :event, :pr
 
     CHECK_STATUSES = %w[queued in_progress completed].freeze
     CHECK_CONCLUSIONS = %w[success failure neutral cancelled skipped timed_out action_required stale].freeze
@@ -16,25 +16,56 @@ module Squiddy
       @client = Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
       @event = git_event
       @pr = pull_request
-      @repo = repository
     end
 
     def bubble_merge
       if already_merged?
         client.add_comment(repo_name, pr_number, 'This PR is already merged.')
       else
-        merge_and_close_pr
+        wait_for_pr_to_match_branch do |merge_sha|
+          merge_and_close_pr(merge_sha)
+        end
       end
     end
 
     private
 
+    def wait_for_pr_to_match_branch
+      retry_sleeps = [1, 2, 3, 5, 8]
+
+      loop do
+        expected = branch_head_sha
+        actual = pull_request_head_sha
+
+        if actual == expected
+          puts "PR HEAD #{actual[0..10]} matches #{branch} HEAD #{expected[0..10]}; merging..."
+          yield expected
+          return
+        elsif s = retry_sleeps.shift
+          puts "PR HEAD #{actual[0..10]} did not match #{branch} HEAD #{expected[0..10]}; waiting for #{s}s..."
+          sleep s
+          next
+        else
+          raise "PR HEAD #{actual[0..10]} did not match #{branch} HEAD #{expected[0..10]}; exiting"
+        end
+      end
+    end
+
     def already_merged?
       client.pull_merged?(repo_name, pr_number)
     end
 
-    def merge_and_close_pr
-      merge
+    def merge_and_close_pr(merge_sha)
+      puts "PR ##{pr_number}: merging #{branch}@#{merge_sha} into #{base_branch}"
+      client.merge_pull_request(
+        repo_name,
+        pr_number,
+        commit_message,
+        {
+          merge_method: 'merge',
+          sha: merge_sha
+        }
+      )
       delete_branch
     rescue StandardError => e
       message = <<~MESSAGE
@@ -46,27 +77,11 @@ module Squiddy
       client.add_comment(repo_name, pr_number, message)
     end
 
-    def merge
-      client.merge(
-        repo_name,
-        base_branch,
-        branch,
-        {
-          merge_method: 'rebase',
-          commit_message: commit_message,
-          sha: main_sha
-        }
-      )
-    end
-
     def delete_branch
-      return if repo.delete_branch_on_merge
+      return if repository.delete_branch_on_merge
 
+      puts "PR ##{pr_number}: deleting #{branch}"
       client.delete_branch(repo_name, branch)
-    end
-
-    def main_sha
-      client.list_commits(repo_name).last.sha
     end
 
     def branch
@@ -81,8 +96,12 @@ module Squiddy
       event.dig('issue', 'number')
     end
 
-    def head_commit_sha
-      client.pull_request_commits(repo_name, pr_number).last.sha
+    def branch_head_sha
+      client.branch(repo_name, branch).commit.sha
+    end
+
+    def pull_request_head_sha
+      client.pull_request(repo_name, pr_number).head.sha
     end
 
     def comment_author
