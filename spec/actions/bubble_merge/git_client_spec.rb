@@ -39,16 +39,25 @@ RSpec.describe Squiddy::GitClient do
       Hashie::Mash.new({ sha: '5678' })
     ]
   }
-  let(:octokit_client) { instance_double('Octokit::Client', merge: nil, delete_branch: nil, add_comment: nil) }
+  let(:pull_merged?) { false }
+  let(:octokit_client) {
+    instance_double(
+      'Octokit::Client',
+      merge: nil,
+      delete_branch: nil,
+      add_comment: nil,
+      list_commits: list_commits,
+      pull_request_commits: pull_request_commits,
+      pull_merged?: pull_merged?
+    )
+  }
   let(:repository) { double("Repository", delete_branch_on_merge: false) }
 
   before do
     stub_const('ENV', 'GITHUB_EVENT' => event, 'GITHUB_TOKEN' => 'token')
     allow(Octokit::Client).to receive(:new).and_return(octokit_client)
     allow(octokit_client).to receive(:pull_request).with('test-user/test-repo', 'test-pr-number').and_return(pull_request)
-    allow(octokit_client).to receive(:list_commits).and_return(list_commits)
-    allow(octokit_client).to receive(:pull_request_commits).and_return(pull_request_commits)
-    allow(octokit_client).to receive(:pull_merged?).and_return(false)
+    allow(octokit_client).to receive(:pull_merged?).with('test-user/test-repo', 'test-pr-number').and_return(false)
     allow(octokit_client).to receive(:repository).with('test-user/test-repo').and_return(repository)
   end
 
