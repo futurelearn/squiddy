@@ -70,11 +70,11 @@ module Squiddy
     end
 
     def branch
-      pr[:head][:ref]
+      pr.head.ref
     end
 
     def base_branch
-      pr[:base][:ref]
+      pr.base.ref
     end
 
     def pr_number

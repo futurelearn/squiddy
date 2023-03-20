@@ -1,5 +1,6 @@
 require 'spec_helper'
 
+require 'hashie/mash'
 require_relative '../../../actions/bubble_merge/git_client'
 
 RSpec.describe Squiddy::GitClient do
@@ -20,17 +21,34 @@ RSpec.describe Squiddy::GitClient do
       }
     }.to_json
   }
-  let(:pr_data) { { base: { ref: 'test-base-branch' }, head: { ref: 'test-branch' } } }
+  let(:pull_request) {
+    Hashie::Mash.new({
+      base: { ref: 'test-base-branch' },
+      head: { ref: 'test-branch' }
+    })
+  }
+  let(:list_commits) {
+    [
+      Hashie::Mash.new({ sha: 'abcd' }),
+      Hashie::Mash.new({ sha: '1234' })
+    ]
+  }
+  let(:pull_request_commits) {
+    [
+      Hashie::Mash.new({ sha: 'febe' }),
+      Hashie::Mash.new({ sha: '5678' })
+    ]
+  }
   let(:octokit_client) { instance_double('Octokit::Client', merge: nil, delete_branch: nil, add_comment: nil) }
   let(:repository) { double("Repository", delete_branch_on_merge: false) }
 
   before do
     stub_const('ENV', 'GITHUB_EVENT' => event, 'GITHUB_TOKEN' => 'token')
     allow(Octokit::Client).to receive(:new).and_return(octokit_client)
-    allow(octokit_client).to receive(:pull_request).with('test-user/test-repo', 'test-pr-number').and_return(pr_data)
-    allow(octokit_client).to receive_message_chain(:list_commits, :last, :sha).and_return('1234')
+    allow(octokit_client).to receive(:pull_request).with('test-user/test-repo', 'test-pr-number').and_return(pull_request)
+    allow(octokit_client).to receive(:list_commits).and_return(list_commits)
+    allow(octokit_client).to receive(:pull_request_commits).and_return(pull_request_commits)
     allow(octokit_client).to receive(:pull_merged?).and_return(false)
-    allow(octokit_client).to receive_message_chain(:pull_request_commits, :last, :sha).and_return('5678')
     allow(octokit_client).to receive(:repository).with('test-user/test-repo').and_return(repository)
   end
 
