@@ -1,5 +1,6 @@
 require 'spec_helper'
 
+require 'hashie/mash'
 require_relative '../../../actions/bubble_merge/git_client'
 
 RSpec.describe Squiddy::GitClient do
@@ -20,31 +21,45 @@ RSpec.describe Squiddy::GitClient do
       }
     }.to_json
   }
-  let(:pr_data) { { base: { ref: 'test-base-branch' }, head: { ref: 'test-branch' } } }
-  let(:octokit_client) { instance_double('Octokit::Client', merge: nil, delete_branch: nil, add_comment: nil) }
-  let(:head_commit_status) do
-    {
-      total_count: '1',
-      check_suites: [
-        {
-          id: '1',
-          status: 'completed',
-          conclusion: 'success'
-        }
-      ]
-    }
-  end
+  let(:pull_request) {
+    Hashie::Mash.new({
+      base: { ref: 'test-base-branch' },
+      head: { ref: 'test-branch', sha: '1234' }
+    })
+  }
+  let(:branch) {
+    Hashie::Mash.new({
+      commit: { sha: '1234' },
+    })
+  }
+  let(:pull_merged?) { false }
+  let(:octokit_client) {
+    instance_double(
+      'Octokit::Client',
+      merge_pull_request: nil,
+      delete_branch: nil,
+      add_comment: nil,
+      pull_merged?: pull_merged?
+    )
+  }
   let(:repository) { double("Repository", delete_branch_on_merge: false) }
 
   before do
     stub_const('ENV', 'GITHUB_EVENT' => event, 'GITHUB_TOKEN' => 'token')
     allow(Octokit::Client).to receive(:new).and_return(octokit_client)
-    allow(octokit_client).to receive(:pull_request).with('test-user/test-repo', 'test-pr-number').and_return(pr_data)
-    allow(octokit_client).to receive_message_chain(:list_commits, :last, :sha).and_return('1234')
-    allow(octokit_client).to receive(:pull_merged?).and_return(false)
-    allow(octokit_client).to receive_message_chain(:pull_request_commits, :last, :sha).and_return('5678')
-    allow(octokit_client).to receive(:check_suites_for_ref).and_return(head_commit_status)
+    allow(octokit_client).to receive(:pull_request).with('test-user/test-repo', 'test-pr-number').and_return(pull_request)
+    allow(octokit_client).to receive(:branch).with('test-user/test-repo', 'test-branch').and_return(branch)
     allow(octokit_client).to receive(:repository).with('test-user/test-repo').and_return(repository)
+  end
+
+  around do |example|
+    begin
+      old_stdout = $stdout
+      $stdout = StringIO.new(String.new, 'w')
+      example.call
+    ensure
+      $stdout = old_stdout
+    end
   end
 
   context '#bubble_merge' do
@@ -64,13 +79,12 @@ RSpec.describe Squiddy::GitClient do
     }
 
     it 'merges successfully' do
-      expect(octokit_client).to receive(:merge).with(
+      expect(octokit_client).to receive(:merge_pull_request).with(
         'test-user/test-repo',
-        'test-base-branch',
-        'test-branch',
+        'test-pr-number',
+        commit_message,
         {
-          commit_message: commit_message,
-          merge_method: 'rebase',
+          merge_method: 'merge',
           sha: '1234'
         }
       )
@@ -93,7 +107,7 @@ RSpec.describe Squiddy::GitClient do
       }
 
       before do
-        allow(octokit_client).to receive(:merge).and_raise(Octokit::Conflict.new)
+        allow(octokit_client).to receive(:merge_pull_request).and_raise(Octokit::Conflict.new)
       end
 
       it 'prints an error message' do
@@ -113,13 +127,49 @@ RSpec.describe Squiddy::GitClient do
       end
 
       it 'does not attempt to merge again' do
-        expect(octokit_client).not_to receive(:merge)
+        expect(octokit_client).not_to receive(:merge_pull_request)
         subject.bubble_merge
       end
 
       it 'does not delete the branch' do
         expect(octokit_client).not_to receive(:delete_branch)
         subject.bubble_merge
+      end
+    end
+
+    context 'when the PR branch and PR are out of sync' do
+      let(:pull_request_head) { double(:pull_request_head, ref: 'test-branch') }
+      let(:pull_request) {
+        Hashie::Mash.new({
+          base: { ref: 'test-base-branch' },
+          head: pull_request_head,
+        })
+      }
+      let(:branch) {
+        Hashie::Mash.new({
+          commit: { sha: '1234' },
+        })
+      }
+
+      before do
+        allow(subject).to receive(:sleep)
+      end
+
+      it 'waits 5 times and then fails' do
+        allow(pull_request_head).to receive(:sha).and_return('5678')
+
+        expect {
+          subject.bubble_merge
+        }.to raise_error(/PR HEAD 5678 did not match test-branch HEAD 1234/)
+        expect(subject).to have_received(:sleep).exactly(5).times
+      end
+
+      it 'recovers if the PR updates to match the branch' do
+        allow(pull_request_head).to receive(:sha).and_return('5678', '1234')
+
+        subject.bubble_merge
+
+        expect(subject).to have_received(:sleep).once
       end
     end
 
