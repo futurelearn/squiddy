@@ -1,0 +1,29 @@
+name: Git backup
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 0 * * *'
+
+jobs:
+  backup:
+    name: Git backup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+      - uses: futurelearn/actions/git-s3-backup@main
+        with:
+          bucket: fl-main-global-git-backup
+      - uses: act10ns/slack@v1
+        if: ${{ failure() }}
+        with:
+          status: ${{ job.status }}
+          channel: '#ops'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
